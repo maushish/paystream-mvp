@@ -5,13 +5,13 @@ resolution = true
 skip-lint = false
 
 [programs.localnet]
-paystream_mvp = "8GD6xLzi3D2CT53EYxZ2iW16Xf7ByoKqv4VMJSRuRRXS"
+paystream_stream = "8GD6xLzi3D2CT53EYxZ2iW16Xf7ByoKqv4VMJSRuRRXS"
 
 [registry]
 url = "https://api.apr.dev"
 
 [provider]
-cluster = "Localnet"
+cluster = "devnet"
 wallet = "~/.config/solana/id.json"
 
 [scripts]
