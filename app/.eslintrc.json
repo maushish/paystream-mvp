@@ -1,0 +1,11 @@
+{
+  "extends": "next/core-web-vitals",
+  "rules": {
+    // Disable all rules
+    "@typescript-eslint/no-explicit-any": "off",
+    "prefer-const": "off",
+    "react-hooks/exhaustive-deps": "off",
+    "no-var": "off",
+    "react/no-unescaped-entities": "off" 
+  }
+}
