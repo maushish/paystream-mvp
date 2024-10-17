@@ -144,7 +144,6 @@ export default function CliffStreamUI() {
                     value={address}
                     onChange={(e) => setAddress(e.target.value)}
                     className="bg-gray-800 border-gray-700 text-gray-100 placeholder-gray-500 focus:border-blue-500 rounded-lg p-3"
-                    disabled={!connected}
                   />
                 </div>
                 <div className="space-y-2">
@@ -158,7 +157,7 @@ export default function CliffStreamUI() {
                     value={amount}
                     onChange={(e) => setAmount(e.target.value)}
                     className="bg-gray-800 border-gray-700 text-gray-100 placeholder-gray-500 focus:border-blue-500 rounded-lg p-3"
-                    disabled={!connected}
+                    
                   />
                 </div>
                 <div className="space-y-2">
@@ -172,7 +171,7 @@ export default function CliffStreamUI() {
                     value={duration}
                     onChange={(e) => setDuration(e.target.value)}
                     className="bg-gray-800 border-gray-700 text-gray-100 placeholder-gray-500 focus:border-blue-500 rounded-lg p-3"
-                    disabled={!connected}
+                  
                   />
                 </div>
                 <div className="space-y-2">
@@ -186,7 +185,7 @@ export default function CliffStreamUI() {
                     value={cliffDuration}
                     onChange={(e) => setCliffDuration(e.target.value)}
                     className="bg-gray-800 border-gray-700 text-gray-100 placeholder-gray-500 focus:border-blue-500 rounded-lg p-3"
-                    disabled={!connected}
+                  
                   />
                 </div>
                 <div className="space-y-2">
@@ -200,7 +199,7 @@ export default function CliffStreamUI() {
                     value={cliffAmount}
                     onChange={(e) => setCliffAmount(e.target.value)}
                     className="bg-gray-800 border-gray-700 text-gray-100 placeholder-gray-500 focus:border-blue-500 rounded-lg p-3"
-                    disabled={!connected}
+              
                   />
                 </div>
                 {error && (
