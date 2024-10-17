@@ -19,7 +19,6 @@ export default function WavyBackgroundDemo() {
           </button>
         </Link>
       </div>
-      <div className="text-red-600 flex  justify-center">under development - maushish :) </div>
     </WavyBackground>
     
   );
