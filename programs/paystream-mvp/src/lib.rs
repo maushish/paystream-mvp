@@ -2,26 +2,28 @@ use anchor_lang::prelude::*;
 use anchor_lang::solana_program::system_program;
 use anchor_lang::solana_program::system_instruction;
 
-declare_id!("E11ndvgpyqmnw9zwFsB6MH9qW3D8PFifAYGz9ypy88B7");
+declare_id!("GHsd2cgzpaoyFQ9hoQkhcXmAegbLaVh2zLFCjBFdotNn");
 
 #[program]
-pub mod payment_stream {
+pub mod paystream_mvp {
     use super::*;
 
     pub fn initialize(ctx: Context<Initialize>) -> Result<()> {
         let stream_account = &mut ctx.accounts.stream_account;
         stream_account.authority = ctx.accounts.authority.key();
         stream_account.stream_count = 0;
+        stream_account.streams = Vec::new(); // Initialize the vector
         Ok(())
     }
 
-      pub fn create_stream(
+    pub fn create_stream(
         ctx: Context<CreateStream>,
         receiver: Pubkey,
         duration: i64,
         amount: u64,
     ) -> Result<()> {
         let stream_account = &mut ctx.accounts.stream_account;
+        
         let clock = Clock::get()?;
 
         let stream = Stream {
@@ -164,7 +166,7 @@ pub struct Initialize<'info> {
     #[account(
         init,
         payer = authority,
-        space = 8 + 32 + 8 + (32 + 32 + 8 + 8 + 8 + 8 + 1) * 10, // Assume max 10 streams
+        space = 8 + 32 + 8 + (32 + 32 + 8 + 8 + 8 + 8 + 1) * 20, // Increased to 20 streams
         seeds = [b"stream", authority.key().as_ref()],
         bump
     )]

@@ -1,5 +1,4 @@
 "use client"
-
 import { useState, useMemo, useEffect } from "react";
 import {
   ConnectionProvider,
@@ -17,8 +16,8 @@ import {
   WalletModalProvider,
   WalletMultiButton,
 } from "@solana/wallet-adapter-react-ui";
-import { clusterApiUrl, PublicKey } from "@solana/web3.js";
-import { Program, AnchorProvider, web3, Idl } from "@project-serum/anchor";
+import { clusterApiUrl, PublicKey, SystemProgram, LAMPORTS_PER_SOL } from "@solana/web3.js";
+import { Program, AnchorProvider, web3, Idl } from "@coral-xyz/anchor";
 import BN from 'bn.js';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -26,15 +25,11 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { AlertCircle } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import "@solana/wallet-adapter-react-ui/styles.css";
-import idl from "./idl.json";
+import {IDL } from "@/data/idl"
 
-const a = JSON.stringify(idl);
-const typedIdl = JSON.parse(a);
-const programId = new PublicKey("E11ndvgpyqmnw9zwFsB6MH9qW3D8PFifAYGz9ypy88B7");
+const programId = new PublicKey("GHsd2cgzpaoyFQ9hoQkhcXmAegbLaVh2zLFCjBFdotNn");
 
 interface GraphDataPoint {
   second: number;
@@ -42,26 +37,22 @@ interface GraphDataPoint {
 }
 
 function StreamManagementContent() {
-  const [address, setAddress] = useState("");
-  const [amount, setAmount] = useState("");
-  const [duration, setDuration] = useState("");
-  const [error, setError] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
+  const [address, setAddress] = useState<string>("");
+  const [amount, setAmount] = useState<string>("");
+  const [duration, setDuration] = useState<string>("");
+  const [error, setError] = useState<string>("");
+  const [isLoading, setIsLoading] = useState<boolean>(false);
   const [graphData, setGraphData] = useState<GraphDataPoint[]>([]);
+  const [txSignature, setTxSignature] = useState<string>("");
 
   const { connection } = useConnection();
   const wallet = useAnchorWallet();
   const { publicKey, connected } = useWallet();
 
   const program = useMemo(() => {
-    if (wallet && typedIdl) {
+    if (wallet) {
       const provider = new AnchorProvider(connection, wallet, AnchorProvider.defaultOptions());
-      try {
-        return new Program(typedIdl, programId, provider);
-      } catch (error) {
-        console.error("Error initializing Anchor program:", error);
-        return null;
-      }
+      return new Program(IDL, provider);
     }
     return null;
   }, [connection, wallet]);
@@ -81,58 +72,71 @@ function StreamManagementContent() {
     }
   }, [amount, duration]);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError("");
+  const createStream = async () => {
+    if (!publicKey || !program) {
+      setError("Please connect your wallet");
+      return;
+    }
+
     setIsLoading(true);
-
-    if (!connected || !publicKey) {
-      setError("Please connect your wallet first.");
-      setIsLoading(false);
-      return;
-    }
-
-    if (!program) {
-      setError("Unable to connect to the program. Please try again.");
-      setIsLoading(false);
-      return;
-    }
-
-    if (!address || !amount || !duration) {
-      setError("All fields are required.");
-      setIsLoading(false);
-      return;
-    }
+    setError("");
+    setTxSignature("");
 
     try {
-      const receiver = new PublicKey(address);
-      const amountBN = new BN(parseFloat(amount) * web3.LAMPORTS_PER_SOL);
-      const durationBN = new BN(parseInt(duration));
+      const receiverPubkey = new PublicKey(address);
+      const amountInLamports = parseFloat(amount) * LAMPORTS_PER_SOL;
+      const durationInSeconds = parseInt(duration);
 
-      const [streamPda] = PublicKey.findProgramAddressSync(
+      // Generate PDA for streamAccount
+      const [streamAccountPDA] = PublicKey.findProgramAddressSync(
         [Buffer.from("stream"), publicKey.toBuffer()],
-        programId
+        program.programId
       );
 
-      const tx = await program.methods.createStream(receiver, durationBN, amountBN)
-        .accounts({
-          streamAccount: streamPda,
+      // Initialize streamAccount
+      const initSignature = await program.rpc.initialize({
+        accounts:{
+          streamAccount: streamAccountPDA,
           authority: publicKey,
-          systemProgram: web3.SystemProgram.programId,
-        })
-        .rpc();
+          systemProgram: SystemProgram.programId,
+        }});
 
-      console.log("Stream created successfully. Transaction signature", tx);
-    } catch (err) {
-      let errorMessage = "Failed to create stream";
+      console.log(`StreamAccount initialized. Signature: ${initSignature}`);
+
+      // Create stream
+      const createStreamSignature = await program.rpc.createStream(
+        receiverPubkey,
+        new BN(700),
+        new BN(amountInLamports),
+        {
+          accounts: {
+            streamAccount: streamAccountPDA,
+            authority: publicKey,
+            systemProgram: SystemProgram.programId,
+          },
+        }
+      );
+
+      setTxSignature(createStreamSignature);
+      console.log(
+        `Stream created successfully! View on explorer: https://explorer.solana.com/tx/${createStreamSignature}?cluster=devnet`
+      );
+      
+    } catch (err: unknown) {
       if (err instanceof Error) {
-        errorMessage = err.message;
+        console.error("Error creating stream:", err);
+        setError(err.message || "Failed to create stream");
+      } else {
+        setError("An unknown error occurred");
       }
-      console.error("Error creating stream:", err);
-      setError(errorMessage);
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    await createStream();
   };
 
   return (
@@ -213,32 +217,7 @@ function StreamManagementContent() {
               </form>
             </div>
           </div>
-          <Tabs defaultValue="senders" className="mt-12">
-            <TabsList className="bg-gray-800 rounded-lg p-1">
-              <TabsTrigger value="senders" className="text-gray-300 data-[state=active]:bg-blue-600 data-[state=active]:text-white rounded-md px-4 py-2 transition-all duration-200">Senders</TabsTrigger>
-              <TabsTrigger value="recipients" className="text-gray-300 data-[state=active]:bg-blue-600 data-[state=active]:text-white rounded-md px-4 py-2 transition-all duration-200">Recipients</TabsTrigger>
-            </TabsList>
-            <TabsContent value="senders" className="mt-6">
-              <Select>
-                <SelectTrigger className="bg-gray-800 border-gray-700 text-gray-100">
-                  <SelectValue placeholder="Refresh Sender List" />
-                </SelectTrigger>
-                <SelectContent className="bg-gray-800 border-gray-700 text-gray-100">
-                  <SelectItem value="refresh">Refresh Sender List</SelectItem>
-                </SelectContent>
-              </Select>
-            </TabsContent>
-            <TabsContent value="recipients" className="mt-6">
-              <Select>
-                <SelectTrigger className="bg-gray-800 border-gray-700 text-gray-100">
-                  <SelectValue placeholder="Refresh Recipient List" />
-                </SelectTrigger>
-                <SelectContent className="bg-gray-800 border-gray-700 text-gray-100">
-                  <SelectItem value="refresh">Refresh Recipient List</SelectItem>
-                </SelectContent>
-              </Select>
-            </TabsContent>
-          </Tabs>
+          
         </CardContent>
       </Card>
     </div>

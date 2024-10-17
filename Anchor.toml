@@ -3,12 +3,12 @@
 [features]
 resolution = true
 skip-lint = false
-
 [programs.localnet]
-paystream_stream = "8GD6xLzi3D2CT53EYxZ2iW16Xf7ByoKqv4VMJSRuRRXS"
+paystream_mvp = "8GD6xLzi3D2CT53EYxZ2iW16Xf7ByoKqv4VMJSRuRRXS"
 
 [programs.devnet]
-paystream_stream = "8GD6xLzi3D2CT53EYxZ2iW16Xf7ByoKqv4VMJSRuRRXS"
+paystream_mvp = "8GD6xLzi3D2CT53EYxZ2iW16Xf7ByoKqv4VMJSRuRRXS"
+
 [registry]
 url = "https://api.apr.dev"
 
