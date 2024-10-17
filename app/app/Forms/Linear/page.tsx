@@ -106,7 +106,6 @@ function StreamManagementContent() {
       // Create stream
       const createStreamSignature = await program.rpc.createStream(
         receiverPubkey,
-        new BN(700),
         new BN(amountInLamports),
         {
           accounts: {
