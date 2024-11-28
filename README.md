@@ -10,7 +10,7 @@
 ## Technical Overview
 Paystream is a decentralized, trustless payment streaming protocol built on the Solana blockchain, implementing advanced token distribution mechanisms through programmable financial streams.
 
-## 🎥 Technical Demo
+## 🎥 Product Demo(early build)
 [Comprehensive Technical Walkthrough](https://www.loom.com/share/a7c76d0ab39a4a91a7a48386719169e9?sid=22413fd0-22fd-44e1-9aad-df2fc3029525)
 
 ## Architecture
